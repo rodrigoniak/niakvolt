@@ -21,6 +21,11 @@
 	
 </div>
 
+<div id="popup" class="popup hidden">
+  <span id="popupMessage"></span>
+  <button onclick="closePopup()">OK</button>
+</div>
+
 <script>
 function updateStatus(){
 	const status = document.getElementById("btn-status")
@@ -64,10 +69,35 @@ function loadPorts(){
         ports.forEach(port => {
             let btn = document.createElement("button")
             btn.innerText = port
-            btn.onclick = () => conectar(port)
+            btn.onclick = () => connect(port)
             menu.appendChild(btn)
         })
     })
+}
+
+function connect(port){
+    fetch("/api/connect", {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({port: port})
+    })
+    .then(r => r.json())
+    .then(d => {
+        if(d.success){
+            updateStatus()
+        } else {
+			showPopup("Erro: " + d.error)
+        }
+    })
+}
+
+function showPopup(msg) {
+    document.getElementById("popup").classList.remove("hidden");
+    document.getElementById("popupMessage").textContent = msg;
+}
+
+function closePopup() {
+    document.getElementById("popup").classList.add("hidden");
 }
 
 updateStatus();
