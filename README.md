@@ -1,5 +1,8 @@
 # NiakVolt
 
+## Prerequisites
+- Python 3.12+
+
 # 1. Create the Virtual Environment
 python -m venv venv
 
@@ -15,6 +18,6 @@ pip install flask minimalmodbus
 pip freeze > requirements.txt
 
 # 5. Run the Project
-start.bat
+start.bat (Windows)
 ## OR directly with Python:
 python app.py
