@@ -12,12 +12,67 @@
 	<div class="dashboard">
 		<header class="top-bar">
 			<h1>🔌 Niak Volt</h1>
+			<div class="connection-wrapper">
+				<button id="btn-status" class="status" onclick="toggleMenu()"></button>
+				<div id="itens-menu" class="port-menu hidden"></div>
+			</div>
 		</header>
 	</div>
 	
 </div>
 
-<script></script>
+<script>
+function updateStatus(){
+	const status = document.getElementById("btn-status")
+	
+    fetch("/api/status")
+    .then(r => r.json())
+    .then(d => {
+		if(d.status === "DISCONNECTED"){
+			status.innerText = "CONNECT";
+		}
+    })
+}
+
+function toggleMenu(){
+	const status = document.getElementById("btn-status")
+    const menu = document.getElementById("itens-menu")
+    
+    if(menu.classList.contains("hidden")){
+	
+		if(status.innerText === "CONNECT") {
+			loadPorts();
+		}
+    }
+	menu.classList.toggle("hidden");
+}
+
+function loadPorts(){
+    fetch("/api/ports")
+    .then(r => r.json())
+    .then(ports => {
+        let menu = document.getElementById("itens-menu")
+        menu.innerHTML = ""
+
+        if(ports.length === 0){
+		    let btn = document.createElement("button")
+            btn.innerText = "No ports COM"
+            menu.appendChild(btn)
+            return
+        }
+
+        ports.forEach(port => {
+            let btn = document.createElement("button")
+            btn.innerText = port
+            btn.onclick = () => conectar(port)
+            menu.appendChild(btn)
+        })
+    })
+}
+
+updateStatus();
+
+</script>
 
 </body>
 </html>

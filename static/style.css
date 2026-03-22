@@ -20,13 +20,6 @@ body {
     color: #1f2937;
 }
 
-.status-pill {
-    background: #e5e7eb;
-    padding: 8px 16px;
-    border-radius: 30px;
-    font-weight: bold;
-}
-
 .cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -117,7 +110,7 @@ input {
     position: relative;
 }
 
-.status-pill {
+.status {
     background: #e5e7eb;
     padding: 8px 16px;
     border-radius: 30px;
