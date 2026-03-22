@@ -1,0 +1,227 @@
+body {
+    background: #f4f6f9;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+}
+
+.dashboard {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-bar h1 {
+    color: #1f2937;
+}
+
+.status-pill {
+    background: #e5e7eb;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-weight: bold;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.card h3 {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.card p {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 10px 0 0 0;
+    color: #111827;
+}
+
+.chart-area {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+.controls {
+	display: flex;
+	justify-content: left;
+}
+
+.menu {
+	display: flex;
+	justify-content: left;
+	margin-bottom: 18px;
+}
+
+button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.input-row input {
+    min-width: 180px;
+}
+
+input {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.connection-wrapper {
+    position: relative;
+}
+
+.status-pill {
+    background: #e5e7eb;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+	display: flex;
+    align-items: center;
+    gap: 8px;
+	font-size: 16px;
+}
+
+.status-on {
+    background: #16a34a;
+    color: white;
+}
+
+.status-off {
+    background: #dc2626;
+    color: white;
+}
+
+.port-menu {
+    position: absolute;
+    right: 0;
+    top: 45px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    padding: 10px;
+    min-width: 120px;
+    z-index: 100;
+}
+
+.port-menu button {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+	font-size: 16px;
+}
+
+.port-menu button:hover {
+    background: #f3f4f6;
+}
+
+.hidden {
+    display: none;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 20px;
+  border: 2px solid #333;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+
+.popup button {
+  margin-top: 10px;
+  padding: 5px 10px;
+}
+
+.loader {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #f98148;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.section-header {
+    margin: 40px 20px 20px 20px;
+}
+
+.section-header h1 {
+    font-size: clamp(22px, 4vw, 32px);
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #1f2937;
+    position: relative;
+    padding-bottom: 8px;
+}
+
+.section-header h1::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #A9A6A6;
+    border-radius: 2px;
+}
