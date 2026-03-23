@@ -37,10 +37,22 @@ function updateStatus(){
     fetch("/api/status")
     .then(r => r.json())
     .then(d => {
+		clearStatus()
 		if(d.status === "DISCONNECTED"){
 			status.innerHTML = "CONNECT";
+		}else if(d.status === "ON"){
+			status.innerHTML = d.status + " (" + d.port + ")";
+			status.classList.add("status-on");
+		}else if(d.status === "OFF"){
+			status.innerHTML = d.status + " (" + d.port + ")";
+			status.classList.add("status-off");
 		}
     })
+}
+
+function clearStatus(){
+	status.classList.remove("status-on");
+	status.classList.remove("status-off");
 }
 
 function toggleMenu(){
