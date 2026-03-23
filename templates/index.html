@@ -63,6 +63,19 @@ function toggleMenu(){
 		if(source.status === "DISCONNECTED") {
 			loadPorts()
 		}else if(source.status === "ON") {
+			let btnOff = document.createElement("button")
+            btnOff.innerText = "Turn off"
+			btnOff.onclick = () => powerOff()
+            menu.appendChild(btnOff)
+		    let btnDisconnect = document.createElement("button")
+            btnDisconnect.innerText = "Disconnect"
+			btnDisconnect.onclick = () => disconnect()
+            menu.appendChild(btnDisconnect)
+		}else if(source.status === "OFF") {
+			let btnOff = document.createElement("button")
+            btnOff.innerText = "Turn off"
+			btnOff.onclick = () => powerOff()
+            menu.appendChild(btnOff)
 		    let btnDisconnect = document.createElement("button")
             btnDisconnect.innerText = "Disconnect"
 			btnDisconnect.onclick = () => disconnect()
@@ -115,6 +128,20 @@ function disconnect(){
 	btnStatus.innerHTML = '<div class="loader"></div>'
 	toggleMenu()
     fetch("/api/disconnect")
+    .then(r => r.json())
+    .then(d => {
+        if(d.error){
+			showPopup("Erro: " + d.error)
+        }
+		updateStatus()
+    })
+}
+
+function powerOff(){
+	clearStatus()
+	btnStatus.innerHTML = '<div class="loader"></div>'
+	toggleMenu()
+    fetch("/api/poweroff")
     .then(r => r.json())
     .then(d => {
         if(d.error){
