@@ -56,12 +56,12 @@
 					<div class="input-group">
 						<label for="output-voltage">Output voltage</label>
 						<div class="input-row">
-							<input type="number" id="output-voltage" value="1.5" step="0.5">
+							<input type="number" id="output-voltage" step="0.5">
 							<button onclick="setOutputVoltage()">SET</button>
 						</div>
 						<label for="max-amperage">Max. amperage</label>
 						<div class="input-row">
-							<input type="number" id="max-amperage" value="1.0" step="0.1">
+							<input type="number" id="max-amperage" step="0.1">
 							<button onclick="setMaxAmperage()">SET</button>
 						</div>
 					</div>
@@ -99,14 +99,19 @@
 		.then(d => {
 			source = d
 			clearStatus()
-			if(d.status === "DISCONNECTED"){
+			if(source.is_connected === 0){
 				btnStatus.innerHTML = "CONNECT"
-			}else if(d.status === "ON"){
-				btnStatus.innerHTML = d.status + " (" + d.port + ")"
-				btnStatus.classList.add("status-on")
-			}else if(d.status === "OFF"){
-				btnStatus.innerHTML = d.status + " (" + d.port + ")"
-				btnStatus.classList.add("status-off")
+			}else if(source.is_connected === 1){
+				document.getElementById("output-voltage").value = source.set_voltage
+				document.getElementById("max-amperage").value = source.max_amperage
+				if(source.output_state === 0){
+					btnStatus.innerHTML = "OFF (" + source.port + ")"
+					btnStatus.classList.add("status-off")
+				}
+				if(source.output_state === 1){
+					btnStatus.innerHTML = "ON (" + source.port + ")"
+					btnStatus.classList.add("status-on")
+				}
 			}
 		})
 	}
@@ -119,9 +124,9 @@
 	function toggleMenu(){
 		menu.innerHTML = ""
 		if(menu.classList.contains("hidden")){
-			if(source.status === "DISCONNECTED") {
+			if(source.is_connected === 0){
 				loadPorts()
-			}else if(source.status === "ON") {
+			}else if(source.is_connected === 1 && source.output_state === 1){
 				let btnOff = document.createElement("button")
 				btnOff.innerText = "Turn off"
 				btnOff.onclick = () => turnOff()
@@ -130,7 +135,7 @@
 				btnDisconnect.innerText = "Disconnect"
 				btnDisconnect.onclick = () => disconnect()
 				menu.appendChild(btnDisconnect)
-			}else if(source.status === "OFF") {
+			}else if(source.is_connected === 1 && source.output_state === 0){
 				let btnOff = document.createElement("button")
 				btnOff.innerText = "Turn on"
 				btnOff.onclick = () => turnOn()

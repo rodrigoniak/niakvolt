@@ -13,12 +13,11 @@ class Source:
 
     def status(self):
         if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
-            s = self.instrument.read_register(9, functioncode=3)
-            if s == 1:
-                return "ON"
-            else:
-                return "OFF"
-        return "DISCONNECTED"
+            output_state = self.instrument.read_register(9, functioncode=3)
+            set_voltage = self.instrument.read_register(0, functioncode=3) / 100
+            max_amperage = self.instrument.read_register(1, functioncode=3) / 1000
+            return 1, output_state, set_voltage, max_amperage
+        return 0, 0, 0, 0
 
     def list_ports(self):
         ports = serial.tools.list_ports.comports()
@@ -31,28 +30,20 @@ class Source:
         self.instrument.serial.bytesize = 8
         self.instrument.serial.timeout = 0.5
         self.instrument.mode = minimalmodbus.MODE_RTU
-        
-
 
     def disconnect(self):
-        if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
-            self.instrument.serial.close()
-            self.instrument = None
-            self.port = None
-            return
-        raise RuntimeError("Cannot disconnect: device is already disconnected.")
+        ensure_connected(self.instrument)
+        self.instrument.serial.close()
+        self.instrument = None
+        self.port = None
 
     def turn_off(self):
-        if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
-            self.instrument.write_register(9, 0, functioncode=6)
-            return
-        raise RuntimeError("Device disconnected")
+        ensure_connected(self.instrument)
+        self.instrument.write_register(9, 0, functioncode=6)
 
     def turn_on(self):
-        if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
-            self.instrument.write_register(9, 1, functioncode=6)
-            return
-        raise RuntimeError("Device disconnected")
+        ensure_connected(self.instrument)
+        self.instrument.write_register(9, 1, functioncode=6)
         
     def set_output_voltage(self, voltage):
         ensure_connected(self.instrument)
@@ -76,7 +67,8 @@ def index():
 
 @app.route("/api/status", methods=["GET"])
 def api_status():
-    return jsonify(status=source.status(), port=source.port)
+    is_connected, output_state, set_voltage, max_amperage = source.status()
+    return jsonify(is_connected=is_connected, port=source.port, output_state=output_state, set_voltage=set_voltage, max_amperage=max_amperage)
 
 @app.route("/api/ports")
 def api_ports():
