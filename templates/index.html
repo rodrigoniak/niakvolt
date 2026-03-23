@@ -58,6 +58,11 @@
 							<input type="number" id="output-voltage" value="1.5" step="0.5">
 							<button onclick="setOutputVoltage()">SET</button>
 						</div>
+						<label for="max-amperage">Max. amperage</label>
+						<div class="input-row">
+							<input type="number" id="max-amperage" value="1.0" step="0.1">
+							<button onclick="setMaxAmperage()">SET</button>
+						</div>
 					</div>
 				</section>
 
@@ -224,6 +229,22 @@
 			method:"POST",
 			headers: {"Content-Type":"application/json"},
 			body: JSON.stringify({voltage: voltage})
+		})
+		.then(r => r.json())
+		.then(d => {
+			if(d.error){
+				showPopup("Error: " + d.error)
+			}
+			updateStatus()
+		})
+	}
+	
+	function setMaxAmperage(){
+		const maxAmperage = document.getElementById("max-amperage").value
+		fetch("/api/set-max-amperage", {
+			method:"POST",
+			headers: {"Content-Type":"application/json"},
+			body: JSON.stringify({amperage: maxAmperage})
 		})
 		.then(r => r.json())
 		.then(d => {

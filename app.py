@@ -55,10 +55,17 @@ class Source:
         raise RuntimeError("Device disconnected")
         
     def set_output_voltage(self, voltage):
-        if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
-            v_set = int(float(voltage) * 100)
-            self.instrument.write_register(0, v_set, functioncode=6)
-            return
+        ensure_connected(self.instrument)
+        v_set = int(float(voltage) * 100)
+        self.instrument.write_register(0, v_set, functioncode=6)
+
+    def set_max_amperage(self, amperage):
+        ensure_connected(self.instrument)
+        v_set = int(float(amperage) * 1000)
+        self.instrument.write_register(1, v_set, functioncode=6)
+
+def ensure_connected(instrument):
+    if not (instrument and getattr(instrument, "serial", None) and instrument.serial.is_open):
         raise RuntimeError("Device disconnected")
         
 source = Source()
@@ -111,9 +118,17 @@ def api_on():
 @app.route("/api/set-output-voltage", methods=["POST"])
 def api_set_output_voltage():
     voltage = request.json["voltage"]
-    print(voltage)
     try:
         source.set_output_voltage(voltage)
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, error=str(e))
+
+@app.route("/api/set-max-amperage", methods=["POST"])
+def api_set_max_amperage():
+    amperage = request.json["amperage"]
+    try:
+        source.set_max_amperage(amperage)
         return jsonify(success=True)
     except Exception as e:
         return jsonify(success=False, error=str(e))
