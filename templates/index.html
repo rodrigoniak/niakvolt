@@ -7,162 +7,219 @@
 	<link rel="icon" href="static/favicon.ico">
 </head>
 <body>
+	<div class="container">
+		<div class="dashboard">
+			<header class="top-bar">
+				<h1>🔌 Niak Volt</h1>
+				<div class="connection-wrapper">
+					<button id="btn-status" class="status" onclick="toggleMenu()"></button>
+					<div id="menu" class="port-menu hidden"></div>
+				</div>
+			</header>
+		
+			<section class="action-panel">
+				<div class="input-group">
+					<div class="input-row">
+						<button id="charts-btn" class="status-pill" onclick="displayChartsPanel()" aria-label="Show Charts">
+							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M3 3v18h18" stroke="#1f2937" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M7 14l4-4 3 3 4-6" stroke="#1f2937" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								<circle cx="7" cy="14" r="1.5" fill="#1f2937"/>
+								<circle cx="11" cy="10" r="1.5" fill="#1f2937"/>
+								<circle cx="14" cy="13" r="1.5" fill="#1f2937"/>
+								<circle cx="18" cy="7" r="1.5" fill="#1f2937"/>
+							</svg>
+						</button>
 
-<div class="container">
-	<div class="dashboard">
-		<header class="top-bar">
-			<h1>🔌 Niak Volt</h1>
-			<div class="connection-wrapper">
-				<button id="btn-status" class="status" onclick="toggleMenu()"></button>
-				<div id="menu" class="port-menu hidden"></div>
+						<button id="config-btn" class="status-pill" onclick="displayConfigPanel()" aria-label="Show Configuration">
+							<svg width="24" height="24" viewBox="0 0 24 24" fill="#1f2937" xmlns="http://www.w3.org/2000/svg">
+								<path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.028 7.028 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.89 2h-3.78a.5.5 0 0 0-.49.41l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.72 8.47a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.84 14.15a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.43.34.69.22l2.39-.96c.5.4 1.05.72 1.63.94l.36 2.54c.05.24.25.41.49.41h3.78c.24 0 .44-.17.49-.41l.36-2.54c.58-.23 1.12-.54 1.63-.94l2.39.96c.26.12.55.02.69-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"/>
+							</svg>
+						</button>
+					</div>
+				</div>
+			</section>
+			
+			<div id="charts-panel">
+				<section class="chart-area">
+					<canvas id="voltage-chart"></canvas>
+				</section>
+				<section class="chart-area">
+					<canvas id="current-chart"></canvas>
+				</section>
 			</div>
-		</header>
+			
+			<div id="settings-panel" class="section-header" style="display: none;">
+
+			</div>
+		</div>
+	</div>
+
+	<div id="overlay" class="overlay hidden"></div>
+
+	<div id="popup" class="popup hidden">
+		<span id="popupMessage"></span>
+		<button onclick="closePopup()">OK</button>
 	</div>
 	
-</div>
-
-<div id="overlay" class="overlay hidden"></div>
-
-<div id="popup" class="popup hidden">
-  <span id="popupMessage"></span>
-  <button onclick="closePopup()">OK</button>
-</div>
-
 <script>
+	let source
+	const btnStatus = document.getElementById("btn-status")
+	const menu = document.getElementById("menu")
 
-let source
-const btnStatus = document.getElementById("btn-status")
-const menu = document.getElementById("menu")
+	function updateStatus(){
+		fetch("/api/status")
+		.then(r => r.json())
+		.then(d => {
+			source = d
+			clearStatus()
+			if(d.status === "DISCONNECTED"){
+				btnStatus.innerHTML = "CONNECT"
+			}else if(d.status === "ON"){
+				btnStatus.innerHTML = d.status + " (" + d.port + ")"
+				btnStatus.classList.add("status-on")
+			}else if(d.status === "OFF"){
+				btnStatus.innerHTML = d.status + " (" + d.port + ")"
+				btnStatus.classList.add("status-off")
+			}
+		})
+	}
 
-function updateStatus(){
-    fetch("/api/status")
-    .then(r => r.json())
-    .then(d => {
-		source = d
+	function clearStatus(){
+		btnStatus.classList.remove("status-on")
+		btnStatus.classList.remove("status-off")
+	}
+
+	function toggleMenu(){
+		menu.innerHTML = ""
+		if(menu.classList.contains("hidden")){
+			if(source.status === "DISCONNECTED") {
+				loadPorts()
+			}else if(source.status === "ON") {
+				let btnOff = document.createElement("button")
+				btnOff.innerText = "Turn off"
+				btnOff.onclick = () => turnOff()
+				menu.appendChild(btnOff)
+				let btnDisconnect = document.createElement("button")
+				btnDisconnect.innerText = "Disconnect"
+				btnDisconnect.onclick = () => disconnect()
+				menu.appendChild(btnDisconnect)
+			}else if(source.status === "OFF") {
+				let btnOff = document.createElement("button")
+				btnOff.innerText = "Turn on"
+				btnOff.onclick = () => turnOn()
+				menu.appendChild(btnOff)
+				let btnDisconnect = document.createElement("button")
+				btnDisconnect.innerText = "Disconnect"
+				btnDisconnect.onclick = () => disconnect()
+				menu.appendChild(btnDisconnect)
+			}
+		}
+		menu.classList.toggle("hidden")
+	}
+
+	function loadPorts(){
+		fetch("/api/ports")
+		.then(r => r.json())
+		.then(ports => {
+			if(ports.length === 0){
+				let btn = document.createElement("button")
+				btn.innerText = "No ports COM"
+				menu.appendChild(btn)
+				return
+			}
+
+			ports.forEach(port => {
+				let btn = document.createElement("button")
+				btn.innerText = port
+				btn.onclick = () => connect(port)
+				menu.appendChild(btn)
+			})
+		})
+	}
+
+	function connect(port){
 		clearStatus()
-		if(d.status === "DISCONNECTED"){
-			btnStatus.innerHTML = "CONNECT"
-		}else if(d.status === "ON"){
-			btnStatus.innerHTML = d.status + " (" + d.port + ")"
-			btnStatus.classList.add("status-on")
-		}else if(d.status === "OFF"){
-			btnStatus.innerHTML = d.status + " (" + d.port + ")"
-			btnStatus.classList.add("status-off")
-		}
-    })
-}
+		btnStatus.innerHTML = '<div class="loader"></div>'
+		toggleMenu()
+		fetch("/api/connect", {
+			method:"POST",
+			headers: {"Content-Type":"application/json"},
+			body: JSON.stringify({port: port})
+		})
+		.then(r => r.json())
+		.then(d => {
+			if(d.error){
+				showPopup("Erro: " + d.error)
+			}
+			updateStatus()
+		})
+	}
 
-function clearStatus(){
-	btnStatus.classList.remove("status-on")
-	btnStatus.classList.remove("status-off")
-}
+	function disconnect(){
+		clearStatus()
+		btnStatus.innerHTML = '<div class="loader"></div>'
+		toggleMenu()
+		fetch("/api/disconnect")
+		.then(r => r.json())
+		.then(d => {
+			if(d.error){
+				showPopup("Erro: " + d.error)
+			}
+			updateStatus()
+		})
+	}
 
-function toggleMenu(){
-	menu.innerHTML = ""
-    if(menu.classList.contains("hidden")){
-		if(source.status === "DISCONNECTED") {
-			loadPorts()
-		}else if(source.status === "ON") {
-			let btnOff = document.createElement("button")
-            btnOff.innerText = "Turn off"
-			btnOff.onclick = () => powerOff()
-            menu.appendChild(btnOff)
-		    let btnDisconnect = document.createElement("button")
-            btnDisconnect.innerText = "Disconnect"
-			btnDisconnect.onclick = () => disconnect()
-            menu.appendChild(btnDisconnect)
-		}else if(source.status === "OFF") {
-			let btnOff = document.createElement("button")
-            btnOff.innerText = "Turn off"
-			btnOff.onclick = () => powerOff()
-            menu.appendChild(btnOff)
-		    let btnDisconnect = document.createElement("button")
-            btnDisconnect.innerText = "Disconnect"
-			btnDisconnect.onclick = () => disconnect()
-            menu.appendChild(btnDisconnect)
-		}
-    }
-	menu.classList.toggle("hidden")
-}
+	function turnOff(){
+		clearStatus()
+		btnStatus.innerHTML = '<div class="loader"></div>'
+		toggleMenu()
+		fetch("/api/off")
+		.then(r => r.json())
+		.then(d => {
+			if(d.error){
+				showPopup("Erro: " + d.error)
+			}
+			updateStatus()
+		})
+	}
 
-function loadPorts(){
-    fetch("/api/ports")
-    .then(r => r.json())
-    .then(ports => {
-        if(ports.length === 0){
-		    let btn = document.createElement("button")
-            btn.innerText = "No ports COM"
-            menu.appendChild(btn)
-            return
-        }
+	function turnOn(){
+		clearStatus()
+		btnStatus.innerHTML = '<div class="loader"></div>'
+		toggleMenu()
+		fetch("/api/on")
+		.then(r => r.json())
+		.then(d => {
+			if(d.error){
+				showPopup("Erro: " + d.error)
+			}
+			updateStatus()
+		})
+	}
 
-        ports.forEach(port => {
-            let btn = document.createElement("button")
-            btn.innerText = port
-            btn.onclick = () => connect(port)
-            menu.appendChild(btn)
-        })
-    })
-}
+	function showPopup(msg) {
+		document.getElementById("popup").classList.remove("hidden")
+		document.getElementById("popupMessage").textContent = msg
+		document.getElementById("overlay").classList.remove("hidden")
+	}
 
-function connect(port){
-	clearStatus()
-	btnStatus.innerHTML = '<div class="loader"></div>'
-	toggleMenu()
-    fetch("/api/connect", {
-        method:"POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({port: port})
-    })
-    .then(r => r.json())
-    .then(d => {
-        if(d.error){
-			showPopup("Erro: " + d.error)
-        }
-		updateStatus()
-    })
-}
+	function closePopup() {
+		document.getElementById("popup").classList.add("hidden")
+		document.getElementById("overlay").classList.add("hidden")
+	}
+	
+	function displayConfigPanel(){
+		document.getElementById("charts-panel").style.display = "none"
+		document.getElementById("settings-panel").style.display = ""
+	}
 
-function disconnect(){
-	clearStatus()
-	btnStatus.innerHTML = '<div class="loader"></div>'
-	toggleMenu()
-    fetch("/api/disconnect")
-    .then(r => r.json())
-    .then(d => {
-        if(d.error){
-			showPopup("Erro: " + d.error)
-        }
-		updateStatus()
-    })
-}
+	function displayChartsPanel(){
+		document.getElementById("charts-panel").style.display = ""
+		document.getElementById("settings-panel").style.display = "none"
+	}
 
-function powerOff(){
-	clearStatus()
-	btnStatus.innerHTML = '<div class="loader"></div>'
-	toggleMenu()
-    fetch("/api/poweroff")
-    .then(r => r.json())
-    .then(d => {
-        if(d.error){
-			showPopup("Erro: " + d.error)
-        }
-		updateStatus()
-    })
-}
-
-function showPopup(msg) {
-    document.getElementById("popup").classList.remove("hidden")
-    document.getElementById("popupMessage").textContent = msg
-	document.getElementById("overlay").classList.remove("hidden")
-}
-
-function closePopup() {
-    document.getElementById("popup").classList.add("hidden")
-	document.getElementById("overlay").classList.add("hidden")
-}
-
-updateStatus()
+	updateStatus()
 
 </script>
 

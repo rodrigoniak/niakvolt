@@ -19,11 +19,11 @@ class Source:
             else:
                 return "OFF"
         return "DISCONNECTED"
-        
+
     def list_ports(self):
         ports = serial.tools.list_ports.comports()
         return [p.device for p in ports]
-        
+
     def connect(self, port):
         self.port = port
         self.instrument = minimalmodbus.Instrument(port, 1)
@@ -34,8 +34,7 @@ class Source:
         
         v_set = int(2.5 * 100)
         self.instrument.write_register(0, v_set, functioncode=6)
-        
-        
+
     def disconnect(self):
         if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
             self.instrument.serial.close()
@@ -43,10 +42,16 @@ class Source:
             self.port = None
             return
         raise RuntimeError("Cannot disconnect: device is already disconnected.")
-        
-    def poweroff(self):
+
+    def turn_off(self):
         if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
             self.instrument.write_register(9, 0, functioncode=6)
+            return
+        raise RuntimeError("Cannot disconnect: device is already disconnected.")
+
+    def turn_on(self):
+        if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
+            self.instrument.write_register(9, 1, functioncode=6)
             return
         raise RuntimeError("Cannot disconnect: device is already disconnected.")
 
@@ -81,10 +86,18 @@ def api_disconnect():
     except Exception as e:
         return jsonify(success=False, error=str(e))
 
-@app.route("/api/poweroff", methods=["GET"])
+@app.route("/api/off", methods=["GET"])
 def api_off():
     try:
-        source.poweroff()
+        source.turn_off()
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, error=str(e))
+
+@app.route("/api/on", methods=["GET"])
+def api_on():
+    try:
+        source.turn_on()
         return jsonify(success=True)
     except Exception as e:
         return jsonify(success=False, error=str(e))
