@@ -32,8 +32,7 @@ class Source:
         self.instrument.serial.timeout = 0.5
         self.instrument.mode = minimalmodbus.MODE_RTU
         
-        v_set = int(2.5 * 100)
-        self.instrument.write_register(0, v_set, functioncode=6)
+
 
     def disconnect(self):
         if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
@@ -47,14 +46,21 @@ class Source:
         if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
             self.instrument.write_register(9, 0, functioncode=6)
             return
-        raise RuntimeError("Cannot disconnect: device is already disconnected.")
+        raise RuntimeError("Device disconnected")
 
     def turn_on(self):
         if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
             self.instrument.write_register(9, 1, functioncode=6)
             return
-        raise RuntimeError("Cannot disconnect: device is already disconnected.")
-
+        raise RuntimeError("Device disconnected")
+        
+    def set_output_voltage(self, voltage):
+        if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
+            v_set = int(float(voltage) * 100)
+            self.instrument.write_register(0, v_set, functioncode=6)
+            return
+        raise RuntimeError("Device disconnected")
+        
 source = Source()
 
 @app.route("/", methods=["GET"])
@@ -98,6 +104,16 @@ def api_off():
 def api_on():
     try:
         source.turn_on()
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, error=str(e))
+
+@app.route("/api/set-output-voltage", methods=["POST"])
+def api_set_output_voltage():
+    voltage = request.json["voltage"]
+    print(voltage)
+    try:
+        source.set_output_voltage(voltage)
         return jsonify(success=True)
     except Exception as e:
         return jsonify(success=False, error=str(e))
