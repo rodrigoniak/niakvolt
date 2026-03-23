@@ -21,6 +21,8 @@
 	
 </div>
 
+<div id="overlay" class="overlay hidden"></div>
+
 <div id="popup" class="popup hidden">
   <span id="popupMessage"></span>
   <button onclick="closePopup()">OK</button>
@@ -94,10 +96,12 @@ function connect(port){
 function showPopup(msg) {
     document.getElementById("popup").classList.remove("hidden");
     document.getElementById("popupMessage").textContent = msg;
+	document.getElementById("overlay").classList.remove("hidden");
 }
 
 function closePopup() {
     document.getElementById("popup").classList.add("hidden");
+	document.getElementById("overlay").classList.add("hidden");
 }
 
 updateStatus();
