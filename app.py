@@ -12,7 +12,7 @@ class Source:
         self.port = None
 
     def status(self):
-        if self.instrument:
+        if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
             s = self.instrument.read_register(1, functioncode=3)
             if s == 1:
                 return "ON"
@@ -35,8 +35,15 @@ class Source:
         v_set = int(2.5 * 100)
         self.instrument.write_register(0, v_set, functioncode=6)
         self.instrument.write_register(1, 1, functioncode=6)
-        print(port)
-
+        
+    def disconnect(self):
+        if self.instrument and self.instrument.serial and self.instrument.serial.is_open:
+            self.instrument.serial.close()
+            self.instrument = None
+            self.port = None
+            return
+        raise RuntimeError("Cannot disconnect: device is already disconnected.")
+        
 source = Source()
 
 @app.route("/", methods=["GET"])
@@ -56,6 +63,14 @@ def api_connect():
     port = request.json["port"]
     try:
         source.connect(port)
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, error=str(e))
+        
+@app.route("/api/disconnect", methods=["GET"])
+def api_disconnect():
+    try:
+        source.disconnect()
         return jsonify(success=True)
     except Exception as e:
         return jsonify(success=False, error=str(e))
